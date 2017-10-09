@@ -1,0 +1,197 @@
+
+
+PROJECT 7 DESCRIPTION:
+
+Write a C++ class definition called EZ_CURVE_FIT which will perform
+Least Squares Curve Fitting (linear regression only).  You will inherit from
+a class called LINEAR_SOLVER located in /usr/tools/EE259/IO/sample_p6.h file. 
+
+#include /usr/tools/EE259/IO/sample_p6_mod.h
+class EZ_CURVE_FIT:public LINEAR_SOLVER
+{
+   public:
+	EZ_CURVE_FIT(int); // constructor; 
+		// example: s.EZ_CURVE_FIT(5);
+		// there are 5 pairs of data points;
+
+	void LS_FIT_BY_ME(char *); 
+		// example: s.LS_FIT_BY_ME("data_file");
+		// perform least squares fit using inheritance 
+		// data is in "data_file";
+		
+	void LS_FIT_BY_MATLAB (char *); 
+		// example: s.LS_FIT_BY_MATLAB("data_file);
+		// perform least squares fit using MATLAB; 
+		
+   private:
+	int np; // number of data pairs, assume np less than 100
+};
+
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+To use the inheritance from LINEAR_SOLVER class, your constructor should 
+look like:
+
+EZ_CURVE_FIT::EZ_CURVE_FIT(int x)
+	:LINEAR_SOLVER(2, "in.6") // initialize base class LINEAR_SOLVER, (we need to solve 
+	   // a linear equation system of AX=B, Dimension of A is 2X2) ;
+{
+        // your code goes here 
+        
+}
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+The definition of LS_FIT_BY_ME method is as follows:
+
+	s.LS_FIT_BY_ME("data_file_name");
+
+The format of the data file for Project 7 is as follows:
+ 
+X_0 Y_0
+X_1 Y_1
+...
+X_n-1 Y_n-1
+
+where X_i, Y_i are floating point numbers for the data points.
+
+In order to find a linear function ( y = mx + b) to fit the data, you need
+to solve a linear equation set.  In this method, first you need to compute 
+s1, through s6 values. Then you will put them into a file called in.6
+which will be used by sample_p6.h.
+
+The format of in.6 file should be:
+	
+	S1 S2
+	S4 S5
+	S3
+	S6
+
+To find the values of m and b, you should use SOLVE_LINEAR_EQUATION
+inherited from LINEAR_SOLVER and solve this equation set. 
+
+To inherit from LINEAR_SOLVER, use method SOLVE_LINEAR_EQUATION as follows:
+
+	LINEAR_SOLVER L(2);
+	L.SOLVE_LINEAR_EQUATION("NONE");
+	
+The option "NONE" is added to sample_p6.h which does not sort the output.
+
+The results for X[0], X[1] of the linear equation are given in out.6 file.
+where, X[0] corresponds to m and X[1] to b.
+
+At this point you should output the following into the out_71 file:
+
+	LEAST_SQUARE_FIT RESULT:
+	USING INHERITANCE:
+	MATCHING FUNCTION IS Y = m * X + b
+
+where m and b have 2 digits after the decimal.
+
+Now you proceed with calculating the error, which will be written into
+out_71 file as follows:
+
+	THE ERROR FROM LS_FIT_BY_ME METHOD IS e
+
+where e should have 3 digits after the decimal.
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+The definition of LS_FIT_BY_MATLAB method is as follows:
+
+	s.LS_FIT_BY_MATLAB("data_file_name"); 
+
+To find a linear function ( y = mx + b) for the approximation and the 
+error, you will use MATLAB set by populating mat_1.m file as follows:
+
+   x=[x0,...,xn-1];
+   y=[y0,...,yn-1];
+   coef=polyfit(x,y,1);
+   m=coef(1);
+   b=coef(2);
+   Y=m*x+b;
+   matlab_error=sum((y - Y).^2);
+   fid=fopen('out_71','a');
+   fprintf(fid,'*** RESULT FROM MATLAB\n');
+   fprintf(fid,'*** THE MATCHING FUNCTION IS Y=(%.3f) * X +(%.3f) \n',m,b);
+   fprintf(fid,'*** THE ERROR FROM MATLAB IS %.3f \n', matlab_error);
+
+In mat_1.m file, values of x0 through xn-1 and y0 through yn-1 are read from 
+the file name provided in the method call.
+
+Then you will execute this file within your LS_FIT_BY_MATLAB method by 
+the following command:
+
+        system("/bin/csh /usr/tools/EE259/IO/run_mat_1");
+
+which will run your mat_1.m file in MATLAB.
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+
+:::::::::::::: EXAMPLE 1 ::::::::::::::::::::: 
+//Example of program : main7_1.cc
+#include "p7.h"
+#include <fstream>
+#include <iostream>
+
+int main()
+{
+	EZ_CURVE_FIT C(5);
+	C.LS_FIT_BY_ME("in_7_1");
+	return 0;
+}
+
+====== contents of in_7_1: =======
+0.0 1.0
+1.0 3.1
+2.1 5.2
+3.1 6.9
+4.2 9.1
+
+====== expected contents of out_71 =======
+LEAST_SQUARE_FIT RESULT:
+USING INHERITANCE:
+MATCHING FUNCTION IS Y = 1.90 * X + 1.10
+THE ERROR FROM LS_FIT_BY_ME METHOD IS 0.019
+
+
+:::::::::::::: EXAMPLE 2 ::::::::::::::::::::: 
+//Example of program : main7_2.cc
+#include "p7.h"
+#include <fstream>
+#include <iostream>
+
+int main()
+{
+	EZ_CURVE_FIT C(5);
+	C.LS_FIT_BY_MATLAB("in_7_2");
+	return 0;
+}
+
+====== contents of in_7_2: =======
+0.0 1.0
+1.0 3.1
+2.1 5.2
+3.1 6.9
+4.2 9.1
+
+====== contents of mat_1.m: =======
+x=[0,1,2.1,3.1,4.2];
+y=[1,3.1,5.2,6.9,9.1];
+coef=polyfit(x,y,1);
+m=coef(1);
+b=coef(2);
+Y=m*x+b;
+matlab_error=sum((y - Y).^2);
+fid=fopen('out_71','a');
+fprintf(fid,'*** RESULT FROM MATLAB\n');
+fprintf(fid,'*** THE MATCHING FUNCTION IS Y=(%.3f) * X +(%.3f) \n',m,b);
+fprintf(fid,'*** THE ERROR FROM MATLAB IS %.3f \n', matlab_error);
+
+====== expected contents of out_71 =======
+*** RESULT FROM MATLAB
+*** THE MATCHING FUNCTION IS Y=(1.905) * X +(1.098) 
+*** THE ERROR FROM MATLAB IS 0.040 
+
